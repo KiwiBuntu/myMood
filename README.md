@@ -15,6 +15,7 @@ It's a single-page Progressive Web App with no backend, no account and no build 
   - mood vs sunshine and mood vs daylight, with correlations
   - a check of whether your biorhythms actually predict your mood
   - which tags go with better or worse moods
+- **Share your mood**: send your latest check-in as a friendly message, such as "Hi Greg! Quick mood update: I'm doing pretty well 🙂". Add a partner's name and WhatsApp number in Settings and the button opens their WhatsApp chat directly. Without a number it opens your phone's share sheet. Notes are never included.
 - **Backup**: export and import everything as a JSON file.
 - **Offline and installable** when served over HTTPS.
 
@@ -40,7 +41,7 @@ For testing on a LAN, you can mark the address as secure in Chrome at `chrome://
 ## Data and privacy
 
 - Check-ins, settings and cached weather are stored in `localStorage` under keys starting with `mm.`.
-- The only data that leaves the device is your town's coordinates, which are sent to [Open-Meteo](https://open-meteo.com/) (free, no API key) for weather, and the town name you search for.
+- Only two things are sent to [Open-Meteo](https://open-meteo.com/) (free, no API key): your town's coordinates, to look up the weather, and the town name when you search for it. Anything else leaves the device only when you choose to share a mood message yourself.
 - Browser storage can be cleared (for example, iOS may clear it for sites that aren't installed), so **export a backup now and then**. The app reminds you after 30 days.
 
 ## Files
