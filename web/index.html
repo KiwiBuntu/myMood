@@ -1,0 +1,1459 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>myMoods</title>
+<meta name="description" content="A daily mood diary with biorhythms, sunshine and daylight.">
+<meta name="theme-color" content="#EEF3F7">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="myMoods">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400..900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #EEF3F7;
+  --surface: #FFFFFF;
+  --surface-2: #E2E9F1;
+  --ink: #23324A;
+  --ink-soft: #586880;
+  --line: #D2DCE7;
+  --accent: #2B72BE;
+  --accent-ink: #FFFFFF;
+  --phys: #E25677;
+  --emo: #7560DB;
+  --int: #178F80;
+  --sun: #F2AE26;
+  --sky-grey: #C4CDD7;
+  --sky-blue: #82C3EE;
+  --m1: #7D8EB8;
+  --m2: #A6B4D1;
+  --m3: #CED5DB;
+  --m4: #F5D57E;
+  --m5: #F6AF35;
+  --face-ink: #23324A;
+  --cheek: #EE8199;
+  --danger: #B93A55;
+  --backdrop: rgba(23, 33, 54, .45);
+  --shadow: 0 1px 0 rgba(35, 50, 74, .05), 0 10px 28px -16px rgba(35, 50, 74, .35);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111A2C; --surface: #1A2540; --surface-2: #24314F; --ink: #E6ECF5; --ink-soft: #A0AEC4;
+    --line: #2C3A59; --accent: #7DB7F2; --accent-ink: #0E1626; --phys: #FF8AA2; --emo: #A898FF;
+    --int: #4FD0BC; --sky-grey: #263049; --sky-blue: #1C4D82; --m1: #6F80AC; --m2: #92A1C2;
+    --m3: #B7BFC9; --danger: #FF8FA6; --backdrop: rgba(5, 9, 18, .6);
+    --shadow: 0 10px 28px -16px rgba(0, 0, 0, .7); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111A2C; --surface: #1A2540; --surface-2: #24314F; --ink: #E6ECF5; --ink-soft: #A0AEC4;
+  --line: #2C3A59; --accent: #7DB7F2; --accent-ink: #0E1626; --phys: #FF8AA2; --emo: #A898FF;
+  --int: #4FD0BC; --sky-grey: #263049; --sky-blue: #1C4D82; --m1: #6F80AC; --m2: #92A1C2;
+  --m3: #B7BFC9; --danger: #FF8FA6; --backdrop: rgba(5, 9, 18, .6);
+  --shadow: 0 10px 28px -16px rgba(0, 0, 0, .7); color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Nunito", ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
+  font-size: 17px;
+  line-height: 1.5;
+  -webkit-tap-highlight-color: transparent;
+}
+main {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: env(safe-area-inset-top) 0 calc(88px + env(safe-area-inset-bottom));
+}
+.view { padding: 22px 16px 28px; }
+.view[hidden] { display: none; }
+h1 { font-size: 31px; font-weight: 850; line-height: 1.12; letter-spacing: -.012em; margin: 0; }
+h2 { font-size: 19px; font-weight: 800; line-height: 1.25; margin: 0 0 10px; }
+p { margin: 0 0 10px; }
+.sub { color: var(--ink-soft); font-size: 15px; margin: 4px 0 0; }
+.hint { color: var(--ink-soft); font-size: 14px; margin: 8px 0 0; }
+button, input, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 10px; }
+
+.btn {
+  border: 0; border-radius: 999px; padding: 11px 18px; font-weight: 800; font-size: 16px;
+  background: var(--surface-2); color: var(--ink);
+}
+.btn.primary { background: var(--accent); color: var(--accent-ink); }
+.btn.ghost { background: transparent; padding: 8px 12px; color: var(--accent); }
+a.btn { display: inline-block; text-decoration: none; white-space: nowrap; }
+.btn.danger { background: transparent; color: var(--danger); box-shadow: inset 0 0 0 1.5px currentColor; }
+.btn:disabled { opacity: .45; cursor: default; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+input[type="text"], input[type="search"], input[type="date"], input[type="time"], textarea {
+  width: 100%; padding: 12px 14px; border-radius: 14px; border: 1.5px solid var(--line);
+  background: var(--surface); font-size: 17px;
+}
+textarea { min-height: 84px; resize: vertical; }
+label.field { display: block; font-weight: 700; font-size: 15px; margin: 0 0 14px; }
+label.field > input, label.field > textarea { margin-top: 6px; font-weight: 400; }
+
+/* ---------- Today ---------- */
+.greet h1 { font-size: 34px; }
+.sky {
+  --sunfrac: 50%;
+  position: relative;
+  margin: 18px -16px 0;
+  padding-bottom: 6px;
+  background: linear-gradient(180deg,
+    color-mix(in oklab, var(--sky-blue) var(--sunfrac), var(--sky-grey)) 0%,
+    color-mix(in oklab, var(--sky-blue) calc(var(--sunfrac) * .5), var(--bg)) 62%,
+    var(--bg) 100%);
+  transition: background .6s ease;
+}
+.sky .sunball {
+  position: absolute; right: 26px; top: 16px; width: 38px; height: 38px; border-radius: 50%;
+  background: var(--sun); opacity: var(--sunop, .5);
+  box-shadow: 0 0 0 9px color-mix(in oklab, var(--sun) 22%, transparent), 0 0 0 20px color-mix(in oklab, var(--sun) 10%, transparent);
+}
+#bio { position: relative; display: block; width: 100%; height: 240px; touch-action: pan-y; cursor: grab; user-select: none; -webkit-user-select: none; }
+#bio:active { cursor: grabbing; }
+#bio text { font-family: inherit; font-size: 11.5px; font-weight: 700; fill: var(--ink-soft); }
+.bio-read { padding: 0 16px; }
+.bio-read .when { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.bio-read .when strong { font-size: 15px; }
+.bio-read ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.bio-read li { font-size: 13.5px; color: var(--ink-soft); line-height: 1.3; }
+.bio-read li b { display: block; font-size: 21px; color: var(--ink); font-weight: 850; font-variant-numeric: tabular-nums; }
+.bio-read li .sw { display: inline-block; width: 14px; height: 4px; border-radius: 2px; background: var(--c); vertical-align: middle; margin-right: 6px; }
+
+.checkin { margin-top: 26px; }
+.faces { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.faces button {
+  border: 0; background: transparent; padding: 6px 0 4px; border-radius: 18px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  font-size: 13px; font-weight: 700; color: var(--ink-soft);
+}
+.faces button .face { width: min(60px, 15vw); height: auto; transition: transform .18s ease; }
+.faces button:hover .face { transform: translateY(-3px); }
+.faces button.pop .face { animation: pop .55s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes pop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.28) rotate(-8deg); }
+  65% { transform: scale(.94) rotate(4deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+.today-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.today-list:empty { display: none; }
+.chip-entry {
+  display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 999px;
+  padding: 4px 12px 4px 4px; background: var(--surface); box-shadow: var(--shadow);
+  font-size: 14px; font-weight: 700;
+}
+.chip-entry .face { width: 26px; height: 26px; }
+.chip-entry small { color: var(--ink-soft); font-weight: 600; }
+
+.light { margin-top: 30px; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px 10px; margin: 0; }
+.stats div { min-width: 0; }
+.stats dt { font-size: 13.5px; color: var(--ink-soft); font-weight: 700; }
+.stats dd { margin: 0; font-size: 22px; font-weight: 850; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.stats dd small { display: block; font-size: 13px; font-weight: 600; color: var(--ink-soft); }
+.nudge { background: var(--surface); border-radius: 18px; padding: 12px 14px; margin-top: 16px; box-shadow: var(--shadow); font-size: 15px; display: flex; gap: 10px; align-items: center; justify-content: space-between; }
+.nudge[hidden] { display: none; }
+
+/* ---------- Tab bar ---------- */
+.tabs {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
+  display: flex; justify-content: center;
+  background: color-mix(in oklab, var(--surface) 92%, transparent);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid var(--line);
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+}
+.tabs .inner { display: grid; grid-template-columns: repeat(4, 1fr); width: 100%; max-width: 560px; }
+.tabs a {
+  display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 0;
+  color: var(--ink-soft); text-decoration: none; font-size: 12px; font-weight: 750;
+}
+.tabs a svg { width: 44px; height: 28px; padding: 3px 10px; border-radius: 999px; transition: background .2s; }
+.tabs a[aria-current="page"] { color: var(--ink); }
+.tabs a[aria-current="page"] svg { background: color-mix(in oklab, var(--accent) 18%, transparent); color: var(--accent); }
+
+/* ---------- Faces ---------- */
+.face { display: block; }
+
+/* ---------- History ---------- */
+.month-nav { display: flex; align-items: center; justify-content: space-between; margin: 18px 0 4px; }
+.month-nav h2 { margin: 0; }
+.month-nav button { width: 42px; height: 42px; border-radius: 50%; border: 0; background: var(--surface); box-shadow: var(--shadow); font-size: 20px; font-weight: 800; }
+.month-nav button:disabled { opacity: .35; }
+.month-sum { text-align: center; margin: 0 0 12px; }
+.cal-head, .cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.cal-head { font-size: 12.5px; color: var(--ink-soft); font-weight: 750; text-align: center; margin-bottom: 6px; }
+.day {
+  position: relative; aspect-ratio: 1; border: 0; border-radius: 13px;
+  background: var(--c, var(--surface)); padding: 0;
+  box-shadow: inset 0 0 0 1.5px var(--ring, transparent);
+}
+.day:not(.has) { --ring: var(--line); background: transparent; }
+.day .num { position: absolute; left: 7px; top: 4px; font-size: 13px; font-weight: 800; color: var(--face-ink); }
+.day:not(.has) .num { color: var(--ink-soft); }
+.day .sunbar { position: absolute; left: 6px; bottom: 6px; height: 4px; border-radius: 2px; width: calc((100% - 12px) * var(--w)); background: var(--sun); }
+.day.has .sunbar { background: color-mix(in oklab, var(--face-ink) 55%, transparent); }
+.day.today { --ring: var(--accent); }
+.day.sel { box-shadow: 0 0 0 2.5px var(--bg), 0 0 0 5px var(--ink); }
+.day:disabled { opacity: .35; cursor: default; }
+.cal-legend { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; font-size: 13px; color: var(--ink-soft); gap: 12px; flex-wrap: wrap; }
+.cal-legend .scale-sw { display: inline-flex; gap: 3px; vertical-align: middle; margin: 0 6px; }
+.cal-legend .scale-sw i { width: 14px; height: 14px; border-radius: 4px; display: block; }
+.cal-legend .sunkey { display: inline-block; width: 18px; height: 4px; border-radius: 2px; background: var(--sun); vertical-align: middle; margin-right: 6px; }
+.day-detail { margin-top: 26px; }
+.day-detail .meta { color: var(--ink-soft); font-size: 15px; margin: 0 0 4px; }
+.entry-list { list-style: none; padding: 0; margin: 14px 0; display: grid; gap: 10px; }
+.entry-row {
+  width: 100%; text-align: left; border: 0; background: var(--surface); border-radius: 18px;
+  padding: 10px 14px 10px 10px; display: grid; grid-template-columns: 40px 1fr; gap: 12px; align-items: center; box-shadow: var(--shadow);
+}
+.entry-row .face { width: 40px; height: 40px; }
+.entry-row strong { font-weight: 800; }
+.entry-row span { display: block; color: var(--ink-soft); font-size: 14px; line-height: 1.35; }
+
+/* ---------- Insights ---------- */
+.seg { display: inline-flex; background: var(--surface-2); border-radius: 999px; padding: 3px; gap: 2px; }
+.seg button { border: 0; background: transparent; border-radius: 999px; padding: 6px 14px; font-weight: 800; font-size: 14px; color: var(--ink-soft); }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+.card { background: var(--surface); border-radius: 24px; padding: 18px 16px 16px; margin-top: 16px; box-shadow: var(--shadow); }
+.card p { font-size: 15.5px; }
+.card svg { display: block; width: 100%; height: auto; overflow: visible; }
+.card svg text { font-family: inherit; font-size: 11px; font-weight: 700; fill: var(--ink-soft); }
+.r-note { color: var(--ink-soft); font-size: 13.5px; margin: 8px 0 0; }
+.bars { list-style: none; padding: 0; margin: 4px 0 0; display: grid; gap: 10px; }
+.bars li { display: grid; grid-template-columns: 7.5em 1fr 3.2em; gap: 10px; align-items: center; font-size: 14.5px; font-weight: 700; }
+.bars .track { position: relative; height: 12px; background: var(--surface-2); border-radius: 6px; }
+.bars .track::after { content: ""; position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1.5px; background: var(--ink-soft); opacity: .5; }
+.bars .fill { position: absolute; top: 0; bottom: 0; border-radius: 6px; background: var(--c, var(--accent)); }
+.bars .val { text-align: right; font-variant-numeric: tabular-nums; color: var(--ink-soft); }
+.empty { text-align: center; padding: 34px 10px 10px; }
+.empty .face { margin: 0 auto 14px; }
+.progress { height: 10px; border-radius: 5px; background: var(--surface-2); overflow: hidden; margin: 14px auto 0; max-width: 260px; }
+.progress i { display: block; height: 100%; background: var(--accent); border-radius: 5px; }
+
+/* ---------- Settings ---------- */
+.group { background: var(--surface); border-radius: 24px; padding: 18px 16px; margin-top: 16px; box-shadow: var(--shadow); }
+.group h2 { margin-bottom: 12px; }
+.loc-search { display: flex; gap: 8px; }
+.loc-search input { flex: 1; min-width: 0; }
+.loc-results { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 6px; }
+.loc-results button { width: 100%; text-align: left; border: 0; background: var(--surface-2); border-radius: 14px; padding: 10px 14px; font-weight: 700; }
+.loc-results button span { display: block; font-weight: 500; font-size: 14px; color: var(--ink-soft); }
+.loc-current { font-weight: 800; font-size: 18px; margin: 0 0 12px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  border: 0; border-radius: 999px; padding: 7px 14px; font-weight: 750; font-size: 14.5px;
+  background: var(--surface-2); color: var(--ink);
+}
+.chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.chip .x { margin-left: 6px; opacity: .6; }
+.add-tag { display: flex; gap: 8px; margin-top: 12px; }
+.add-tag input { flex: 1; min-width: 0; }
+.about { color: var(--ink-soft); font-size: 14px; text-align: center; margin: 26px 10px 0; }
+
+/* ---------- Editor sheet ---------- */
+dialog {
+  width: 100%; max-width: 560px; margin: auto auto 0; border: 0; padding: 0;
+  border-radius: 28px 28px 0 0; background: var(--surface); color: var(--ink);
+  max-height: 92vh; max-height: 92dvh;
+}
+dialog[open] { animation: sheet .32s cubic-bezier(.2, .9, .3, 1); }
+dialog::backdrop { background: var(--backdrop); }
+@keyframes sheet { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+.sheet { padding: 10px 16px calc(18px + env(safe-area-inset-bottom)); }
+.sheet .grab { width: 44px; height: 5px; border-radius: 3px; background: var(--line); margin: 0 auto 14px; }
+.sheet header { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.sheet header input[type="time"] { width: auto; padding: 6px 10px; font-size: 15px; }
+.ed-faces { margin: 14px 0 18px; }
+.ed-faces button[aria-pressed="true"] { background: var(--surface-2); color: var(--ink); }
+.ed-faces button[aria-pressed="false"] .face { opacity: .55; }
+.scale { margin-bottom: 16px; }
+.scale .lbl { font-weight: 800; font-size: 15px; margin-bottom: 6px; display: flex; justify-content: space-between; }
+.scale .lbl small { color: var(--ink-soft); font-weight: 600; }
+.scale .dots { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.scale .dots button {
+  height: 38px; border: 0; border-radius: 12px; background: var(--surface-2); font-weight: 800; color: var(--ink-soft);
+}
+.scale .dots button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.scale .ends { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--ink-soft); margin-top: 4px; }
+.sheet h3 { font-size: 15px; font-weight: 800; margin: 4px 0 8px; }
+.sheet footer { display: flex; gap: 10px; margin-top: 18px; }
+.sheet footer .spacer { flex: 1; }
+
+/* ---------- Onboarding ---------- */
+.onboard { position: fixed; inset: 0; z-index: 20; background: var(--bg); overflow: auto; }
+.onboard[hidden] { display: none; }
+.ob-sky { height: 210px; background: linear-gradient(180deg, var(--sky-blue), var(--bg)); position: relative; overflow: hidden; }
+.ob-sky svg { position: absolute; left: 0; right: 0; bottom: 18px; width: 100%; height: 130px; }
+.ob-body { max-width: 480px; margin: 0 auto; padding: 8px 20px 40px; }
+.ob-step[hidden] { display: none; }
+.ob-step h1 { margin-bottom: 10px; }
+.ob-step > p { color: var(--ink-soft); }
+.ob-dots { display: flex; gap: 6px; margin: 0 0 18px; }
+.ob-dots i { width: 8px; height: 8px; border-radius: 4px; background: var(--line); transition: width .25s, background .25s; }
+.ob-dots i.on { width: 22px; background: var(--accent); }
+.ob-actions { display: flex; gap: 10px; margin-top: 22px; align-items: center; }
+
+/* ---------- Toast ---------- */
+.toast {
+  position: fixed; left: 50%; bottom: calc(86px + env(safe-area-inset-bottom)); z-index: 30;
+  transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
+  background: var(--ink); color: var(--bg); border-radius: 999px; padding: 8px 8px 8px 18px;
+  display: flex; align-items: center; gap: 6px; font-weight: 750; font-size: 15px;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, .45); transition: opacity .2s, transform .25s;
+  max-width: calc(100vw - 32px); white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+.toast button { border: 0; background: color-mix(in oklab, var(--bg) 18%, transparent); color: var(--bg); border-radius: 999px; padding: 6px 12px; font-weight: 800; font-size: 14px; }
+.toast:not(:has(button)) { padding-right: 18px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<main>
+  <!-- Today -->
+  <section class="view" id="v-today" aria-labelledby="greet">
+    <header class="greet">
+      <h1 id="greet">Hello</h1>
+      <p class="sub" id="today-date"></p>
+    </header>
+    <div class="nudge" id="backup-nudge" hidden>
+      <span id="backup-nudge-text">It's been a while since your last backup.</span>
+      <a class="btn ghost" href="#settings">Back up</a>
+    </div>
+
+    <figure class="sky" id="sky" style="margin-bottom:0">
+      <span class="sunball" aria-hidden="true"></span>
+      <svg id="bio" role="img" aria-label="Biorhythm chart"></svg>
+      <figcaption class="bio-read" id="bio-read"></figcaption>
+    </figure>
+
+    <section class="checkin" aria-labelledby="checkin-h">
+      <h2 id="checkin-h">How are you feeling right now?</h2>
+      <div class="faces" id="faces"></div>
+      <div class="today-list" id="today-list" aria-label="Today's check-ins"></div>
+    </section>
+
+    <section class="light" aria-labelledby="light-h">
+      <h2 id="light-h">Today's light</h2>
+      <div id="light-body"></div>
+    </section>
+  </section>
+
+  <!-- History -->
+  <section class="view" id="v-history" hidden aria-labelledby="hist-h">
+    <h1 id="hist-h">History</h1>
+    <div class="month-nav">
+      <button id="m-prev" aria-label="Previous month">‹</button>
+      <h2 id="m-title"></h2>
+      <button id="m-next" aria-label="Next month">›</button>
+    </div>
+    <p class="sub month-sum" id="m-sum"></p>
+    <div class="cal-head" aria-hidden="true"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+    <div class="cal" id="cal"></div>
+    <div class="cal-legend">
+      <span>Low<span class="scale-sw"><i style="background:var(--m1)"></i><i style="background:var(--m2)"></i><i style="background:var(--m3)"></i><i style="background:var(--m4)"></i><i style="background:var(--m5)"></i></span>Great</span>
+      <span><span class="sunkey"></span>Sunshine hours</span>
+    </div>
+    <section class="day-detail" id="day-detail" aria-live="polite"></section>
+  </section>
+
+  <!-- Insights -->
+  <section class="view" id="v-insights" hidden aria-labelledby="ins-h">
+    <h1 id="ins-h">Insights</h1>
+    <div id="ins-body"></div>
+  </section>
+
+  <!-- Settings -->
+  <section class="view" id="v-settings" hidden aria-labelledby="set-h">
+    <h1 id="set-h">Settings</h1>
+
+    <section class="group">
+      <h2>You</h2>
+      <label class="field">Name<input type="text" id="s-name" autocomplete="given-name"></label>
+      <label class="field">Birth date<input type="date" id="s-birth"></label>
+      <p class="hint">Your birth date sets where each biorhythm cycle starts.</p>
+    </section>
+
+    <section class="group">
+      <h2>Location</h2>
+      <p class="loc-current" id="s-loc-current"></p>
+      <div id="s-loc"></div>
+      <p class="hint">Your location is only used to look up sunshine and weather from Open-Meteo.</p>
+    </section>
+
+    <section class="group">
+      <h2>Tags</h2>
+      <div class="chips" id="s-tags"></div>
+      <form class="add-tag" id="s-tag-form">
+        <input type="text" id="s-tag-new" placeholder="New tag" maxlength="24" aria-label="New tag">
+        <button class="btn" type="submit">Add</button>
+      </form>
+    </section>
+
+    <section class="group">
+      <h2>Appearance</h2>
+      <div class="seg" id="s-theme" role="group" aria-label="Theme">
+        <button data-v="auto">Match device</button><button data-v="light">Light</button><button data-v="dark">Dark</button>
+      </div>
+    </section>
+
+    <section class="group">
+      <h2>Backup</h2>
+      <p id="s-backup-when"></p>
+      <div class="row">
+        <button class="btn primary" id="s-export">Export backup</button>
+        <button class="btn" id="s-import-btn">Import backup</button>
+        <input type="file" id="s-import" accept="application/json,.json" hidden>
+      </div>
+      <p class="hint">Everything lives on this phone only. Export a backup now and then so you don't lose it.</p>
+    </section>
+
+    <section class="group">
+      <h2>Data</h2>
+      <div class="row">
+        <button class="btn" id="s-demo">Load demo data</button>
+        <button class="btn danger" id="s-wipe">Delete all data</button>
+      </div>
+      <p class="hint">Demo data fills in about five months of check-ins so you can see how the charts work.</p>
+    </section>
+
+    <p class="about">Weather data by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>. Biorhythms are just for fun.</p>
+  </section>
+</main>
+
+<nav class="tabs" aria-label="Sections">
+  <div class="inner">
+    <a href="#today" data-tab="today">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M2 13c2.5-5 5-5 7.5 0s5 5 7.5 0 3.5-3 5-1"/></svg>Today
+    </a>
+    <a href="#history" data-tab="history">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>History
+    </a>
+    <a href="#insights" data-tab="insights">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="15" r="1.6" fill="currentColor"/><circle cx="11" cy="11" r="1.6" fill="currentColor"/><circle cx="15" cy="12" r="1.6" fill="currentColor"/><circle cx="18" cy="7" r="1.6" fill="currentColor"/><path d="M4 19l16-12" opacity=".5"/></svg>Insights
+    </a>
+    <a href="#settings" data-tab="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Settings
+    </a>
+  </div>
+</nav>
+
+<!-- Check-in editor -->
+<dialog id="editor" aria-labelledby="ed-title">
+  <form method="dialog" class="sheet" id="ed-form">
+    <div class="grab" aria-hidden="true"></div>
+    <header>
+      <div>
+        <h2 id="ed-title" style="margin:0">Check-in</h2>
+        <p class="sub" id="ed-date" style="margin:0"></p>
+      </div>
+      <input type="time" id="ed-time" aria-label="Time">
+    </header>
+    <div class="faces ed-faces" id="ed-faces" role="group" aria-label="Mood"></div>
+    <div id="ed-scales"></div>
+    <h3>Tags</h3>
+    <div class="chips" id="ed-tags"></div>
+    <h3 style="margin-top:16px"><label for="ed-note">Note</label></h3>
+    <textarea id="ed-note" placeholder="Anything on your mind?" maxlength="1000"></textarea>
+    <footer>
+      <button type="button" class="btn danger" id="ed-del">Delete</button>
+      <span class="spacer"></span>
+      <button type="button" class="btn" id="ed-cancel">Cancel</button>
+      <button type="submit" class="btn primary" id="ed-save">Save</button>
+    </footer>
+  </form>
+</dialog>
+
+<!-- First run -->
+<div class="onboard" id="onboard" hidden>
+  <div class="ob-sky" aria-hidden="true">
+    <svg viewBox="0 0 400 130" preserveAspectRatio="none" fill="none" stroke-width="5" stroke-linecap="round">
+      <path d="M-10 60 C 40 0, 90 0, 140 60 S 240 120, 290 60 S 380 0, 420 40" stroke="var(--phys)"/>
+      <path d="M-10 80 C 50 30, 110 30, 170 80 S 280 130, 340 80 S 400 50, 420 60" stroke="var(--emo)"/>
+      <path d="M-10 100 C 60 60, 130 60, 200 100 S 330 140, 420 90" stroke="var(--int)"/>
+    </svg>
+  </div>
+  <div class="ob-body">
+    <div class="ob-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+
+    <form class="ob-step" data-step="1">
+      <h1>Hi there</h1>
+      <p>myMoods is a little diary for how you feel, with your biorhythms and the daily weather alongside.</p>
+      <label class="field">What should we call you?<input type="text" id="ob-name" autocomplete="given-name" required></label>
+      <div class="ob-actions"><button class="btn primary" type="submit">Next</button></div>
+    </form>
+
+    <form class="ob-step" data-step="2" hidden>
+      <h1>When's your birthday?</h1>
+      <p>Biorhythms are three waves that start on the day you were born: physical, emotional and intellectual.</p>
+      <label class="field">Birth date<input type="date" id="ob-birth" required></label>
+      <div class="ob-actions"><button class="btn primary" type="submit">Next</button><button class="btn ghost" type="button" data-back>Back</button></div>
+    </form>
+
+    <div class="ob-step" data-step="3" hidden>
+      <h1>Where are you?</h1>
+      <p>We'll look up your daily sunshine and daylight. Short, grey days can really affect mood, so it's worth tracking.</p>
+      <p class="loc-current" id="ob-loc-current"></p>
+      <div id="ob-loc"></div>
+      <div class="ob-actions"><button class="btn primary" id="ob-finish">Start tracking</button><button class="btn ghost" type="button" data-back>Back</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+'use strict';
+
+/* ================= Utilities ================= */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+
+const store = {
+  get(k, d) {
+    try { const v = localStorage.getItem('mm.' + k); return v == null ? d : JSON.parse(v); } catch { return d; }
+  },
+  set(k, v) {
+    try { localStorage.setItem('mm.' + k, JSON.stringify(v)); return true; }
+    catch { toast("Couldn't save. This browser's storage is full or blocked."); return false; }
+  },
+};
+
+/* ---- Dates: local calendar days as 'YYYY-MM-DD' keys ---- */
+const pad = (n) => String(n).padStart(2, '0');
+const dayKey = (d = new Date()) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const keyDate = (k) => { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d); };
+const dayNum = (k) => { const [y, m, d] = k.split('-').map(Number); return Date.UTC(y, m - 1, d) / 864e5; };
+const addDays = (k, n) => { const d = keyDate(k); d.setDate(d.getDate() + n); return dayKey(d); };
+const todayKey = () => dayKey();
+const entryDay = (e) => dayKey(new Date(e.ts));
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const fmtDay = (k, opts = { weekday: 'short', day: 'numeric', month: 'short' }) => keyDate(k).toLocaleDateString(undefined, opts);
+const fmtTime = (ts) => new Date(ts).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+const fmtHM = (h) => { const m = Math.round(h * 60); return `${Math.floor(m / 60)} h ${pad(m % 60)} m`; };
+
+/* ================= State ================= */
+const DEFAULT_TAGS = ['Exercise', 'Outdoors', 'Social', 'Work stress', 'Unwell', 'Alcohol', 'Screens late', 'Good food'];
+const MOOD_NAMES = ['', 'Awful', 'Low', 'Okay', 'Good', 'Great'];
+const SCALES = [
+  { id: 'energy', label: 'Energy', lo: 'Drained', hi: 'Buzzing' },
+  { id: 'calm', label: 'Calm', lo: 'Anxious', hi: 'Relaxed' },
+  { id: 'sleep', label: 'Sleep last night', lo: 'Poor', hi: 'Great' },
+];
+const CYCLES = [
+  { id: 'phys', name: 'Physical', period: 23 },
+  { id: 'emo', name: 'Emotional', period: 28 },
+  { id: 'int', name: 'Intellectual', period: 33 },
+];
+
+let S = store.get('settings', null);
+let E = store.get('entries', []);
+let W = store.get('weather', {});
+if (store.get('version', 0) < 1) store.set('version', 1);
+
+const saveSettings = () => store.set('settings', S);
+const saveEntries = () => store.set('entries', E);
+const saveWeather = () => store.set('weather', W);
+
+/* ================= Toast ================= */
+let toastTimer;
+function toast(msg, actions = []) {
+  const t = $('#toast');
+  t.innerHTML = `<span>${esc(msg)}</span>` + actions.map((a, i) => `<button data-i="${i}">${esc(a.label)}</button>`).join('');
+  $$('button', t).forEach((b) => b.addEventListener('click', () => { t.classList.remove('show'); actions[b.dataset.i].fn(); }));
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), actions.length ? 6000 : 2600);
+}
+
+/* ================= Faces ================= */
+function face(m, size = 56) {
+  const k = (m - 3) * 3.4;
+  const y = 25.5 - (m - 3) * 0.6;
+  const brows = m === 1
+    ? '<path d="M10 13 L16 11.2 M30 13 L24 11.2" stroke="var(--face-ink)" stroke-width="2" stroke-linecap="round"/>'
+    : '';
+  const cheeks = m === 5
+    ? '<circle cx="9.5" cy="23.5" r="3" fill="var(--cheek)" opacity=".55"/><circle cx="30.5" cy="23.5" r="3" fill="var(--cheek)" opacity=".55"/>'
+    : '';
+  const eyes = m === 5
+    ? '<path d="M11.5 17.5 Q14 14.5 16.5 17.5 M23.5 17.5 Q26 14.5 28.5 17.5" stroke="var(--face-ink)" stroke-width="2.2" fill="none" stroke-linecap="round"/>'
+    : '<circle cx="14" cy="17" r="2.3" fill="var(--face-ink)"/><circle cx="26" cy="17" r="2.3" fill="var(--face-ink)"/>';
+  return `<svg class="face" viewBox="0 0 40 40" width="${size}" height="${size}" aria-hidden="true">` +
+    `<circle cx="20" cy="20" r="18.5" fill="var(--m${m})"/>${cheeks}${brows}${eyes}` +
+    `<path d="M12.5 ${y} Q20 ${y + k} 27.5 ${y}" fill="none" stroke="var(--face-ink)" stroke-width="2.4" stroke-linecap="round"/></svg>`;
+}
+
+/* ================= Biorhythm & daylight maths ================= */
+const bioAt = (period, dn) => Math.sin(2 * Math.PI * (dn - dayNum(S.birthDate)) / period);
+const pct = (v) => (v >= 0 ? '+' : '−') + Math.abs(Math.round(v * 100)) + '%';
+
+// Approximate day length (hours) from latitude using solar declination; within a few minutes.
+function daylightCalc(lat, k) {
+  const d = keyDate(k);
+  const n = Math.round((d - new Date(d.getFullYear(), 0, 0)) / 864e5);
+  const g = 2 * Math.PI / 365.24;
+  const decl = Math.asin(Math.sin(-23.44 * Math.PI / 180) * Math.cos(g * (n + 10) + 2 * 0.0167 * Math.sin(g * (n - 2))));
+  const phi = lat * Math.PI / 180;
+  const cosH = (Math.sin(-0.833 * Math.PI / 180) - Math.sin(phi) * Math.sin(decl)) / (Math.cos(phi) * Math.cos(decl));
+  if (cosH >= 1) return 0;
+  if (cosH <= -1) return 24;
+  return 2 * Math.acos(cosH) * 180 / Math.PI / 15;
+}
+const daylightFor = (k) => W[k]?.daylightH ?? (S?.location ? daylightCalc(S.location.lat, k) : null);
+
+/* ================= Weather (Open-Meteo) ================= */
+const DAILY = 'sunshine_duration,daylight_duration,cloud_cover_mean,temperature_2m_max,temperature_2m_min,precipitation_sum';
+
+function mergeDaily(daily) {
+  const hrs = (v) => (v == null ? null : Math.round(v / 36) / 100);
+  daily.time.forEach((t, i) => {
+    const g = (f) => daily[f]?.[i] ?? null;
+    if (g('sunshine_duration') == null && g('temperature_2m_max') == null) return;
+    const prev = W[t] || {};
+    W[t] = {
+      sunshineH: hrs(g('sunshine_duration')),
+      daylightH: hrs(g('daylight_duration')),
+      cloudPct: g('cloud_cover_mean'),
+      tMax: g('temperature_2m_max'),
+      tMin: g('temperature_2m_min'),
+      rainMm: g('precipitation_sum'),
+      uvMax: g('uv_index_max') ?? prev.uvMax ?? null,
+      sunrise: g('sunrise')?.slice(11) ?? prev.sunrise ?? null,
+      sunset: g('sunset')?.slice(11) ?? prev.sunset ?? null,
+    };
+  });
+  saveWeather();
+}
+
+let weatherBusy = null;
+function refreshWeather(force = false) {
+  const loc = S?.location;
+  if (!loc) return Promise.resolve();
+  if (!force && Date.now() - store.get('weatherAt', 0) < 3 * 3600e3) return Promise.resolve();
+  if (weatherBusy) return weatherBusy;
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}` +
+    `&daily=${DAILY},uv_index_max,sunrise,sunset&past_days=92&forecast_days=3&timezone=auto`;
+  weatherBusy = fetch(url)
+    .then((r) => (r.ok ? r.json() : Promise.reject(new Error(r.status))))
+    .then((j) => { mergeDaily(j.daily); store.set('weatherAt', Date.now()); renderAll(); })
+    .catch(() => { /* offline: keep using the cache */ })
+    .finally(() => { weatherBusy = null; });
+  return weatherBusy;
+}
+
+// Fill in older days (beyond the forecast API's 92 days) from the historical archive.
+const archiveTried = new Set();
+async function fillArchive(fromKey, toKey) {
+  const loc = S?.location;
+  if (!loc) return false;
+  const last = addDays(todayKey(), -6); // archive lags about five days
+  if (toKey > last) toKey = last;
+  const missing = [];
+  for (let k = fromKey; k <= toKey; k = addDays(k, 1)) if (!W[k] && !archiveTried.has(k)) missing.push(k);
+  if (!missing.length) return false;
+  missing.forEach((k) => archiveTried.add(k));
+  try {
+    const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${loc.lat}&longitude=${loc.lon}` +
+      `&start_date=${missing[0]}&end_date=${missing[missing.length - 1]}&daily=${DAILY}&timezone=auto`;
+    const r = await fetch(url);
+    if (!r.ok) return false;
+    mergeDaily((await r.json()).daily);
+    return true;
+  } catch { return false; }
+}
+
+/* ================= Aggregates ================= */
+function dailyMoods() {
+  const m = {};
+  for (const e of E) (m[entryDay(e)] ||= []).push(e.mood);
+  const out = {};
+  for (const [k, v] of Object.entries(m)) out[k] = v.reduce((a, b) => a + b, 0) / v.length;
+  return out;
+}
+const entriesOn = (k) => E.filter((e) => entryDay(e) === k).sort((a, b) => a.ts - b.ts);
+
+/* ================= Routing ================= */
+const VIEWS = ['today', 'history', 'insights', 'settings'];
+function route() {
+  const v = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'today';
+  VIEWS.forEach((id) => { $('#v-' + id).hidden = id !== v; });
+  $$('.tabs a').forEach((a) => {
+    if (a.dataset.tab === v) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+  });
+  window.scrollTo(0, 0);
+  render[v]();
+}
+const currentView = () => (VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'today');
+const render = {};
+function renderAll() { if (S) render[currentView()](); }
+
+/* ================= Today ================= */
+const chart = { center: 0, sel: 0, span: 14 };
+
+render.today = function () {
+  const hr = new Date().getHours();
+  const hello = hr < 5 ? 'Still up' : hr < 12 ? 'Morning' : hr < 18 ? 'Afternoon' : 'Evening';
+  $('#greet').textContent = S.name ? `${hello}, ${S.name}` : hello;
+  $('#today-date').textContent = new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
+  renderSky();
+  renderBio();
+  renderTodayList();
+  renderLight();
+  const lastBackup = store.get('backupAt', 0);
+  const stale = E.length >= 10 && Date.now() - lastBackup > 30 * 864e5;
+  $('#backup-nudge').hidden = !stale;
+  if (stale) $('#backup-nudge-text').textContent = lastBackup ? `Your last backup was ${Math.floor((Date.now() - lastBackup) / 864e5)} days ago.` : "You haven't backed up your check-ins yet.";
+};
+
+function renderSky() {
+  const w = W[todayKey()];
+  const f = w && w.daylightH ? clamp(w.sunshineH / w.daylightH, 0, 1) : 0.5;
+  const sky = $('#sky');
+  sky.style.setProperty('--sunfrac', Math.round(f * 100) + '%');
+  sky.style.setProperty('--sunop', (0.2 + f * 0.8).toFixed(2));
+}
+
+function renderBio() {
+  const svg = $('#bio');
+  const Wd = svg.clientWidth || 360;
+  const H = 240;
+  svg.setAttribute('viewBox', `0 0 ${Wd} ${H}`);
+  if (!S.birthDate) { svg.innerHTML = ''; $('#bio-read').innerHTML = '<p>Add your birth date in Settings to see your biorhythms.</p>'; return; }
+
+  const t0 = dayNum(todayKey());
+  const { center, span } = chart;
+  const pxDay = Wd / (span * 2);
+  const x = (o) => (o - (center - span)) * pxDay;
+  const top = 34, bottom = 30;
+  const mid = top + (H - top - bottom) / 2;
+  const amp = (H - top - bottom) / 2 - 4;
+  const y = (v) => mid - v * amp;
+  let out = '';
+
+  // Week ticks (Mondays) and date labels
+  for (let o = Math.floor(center - span); o <= Math.ceil(center + span); o++) {
+    const k = addDays(todayKey(), o);
+    if (keyDate(k).getDay() !== 1) continue;
+    out += `<line x1="${x(o)}" x2="${x(o)}" y1="${top - 6}" y2="${H - bottom + 4}" stroke="var(--ink-soft)" stroke-opacity=".14"/>`;
+    out += `<text x="${x(o) + 4}" y="${H - 10}">${esc(fmtDay(k, { day: 'numeric', month: 'short' }))}</text>`;
+  }
+  out += `<line x1="0" x2="${Wd}" y1="${mid}" y2="${mid}" stroke="var(--ink-soft)" stroke-opacity=".3" stroke-dasharray="2 5"/>`;
+
+  // Today marker
+  out += `<line x1="${x(0)}" x2="${x(0)}" y1="${top - 14}" y2="${H - bottom + 4}" stroke="var(--ink)" stroke-opacity=".55" stroke-width="1.5"/>`;
+  out += `<text x="${x(0)}" y="${top - 18}" text-anchor="middle" style="fill:var(--ink)">Today</text>`;
+
+  // Cycles
+  for (const c of CYCLES) {
+    let p = '';
+    for (let o = center - span - 1; o <= center + span + 1; o += 0.25) {
+      p += (p ? 'L' : 'M') + x(o).toFixed(1) + ',' + y(bioAt(c.period, t0 + o)).toFixed(1);
+    }
+    out += `<path d="${p}" fill="none" stroke="var(--${c.id})" stroke-width="3" stroke-linecap="round"/>`;
+  }
+
+  // Your moods: dotted line + small faces (mood 1..5 mapped onto -1..1)
+  const dm = dailyMoods();
+  const pts = [];
+  for (let o = Math.floor(center - span) - 1; o <= Math.min(0, Math.ceil(center + span) + 1); o++) {
+    const k = addDays(todayKey(), o);
+    if (dm[k] != null) pts.push([o, dm[k]]);
+  }
+  if (pts.length > 1) {
+    out += `<path d="${pts.map(([o, m], i) => (i ? 'L' : 'M') + x(o).toFixed(1) + ',' + y((m - 3) / 2 * 0.9).toFixed(1)).join('')}" fill="none" stroke="var(--ink)" stroke-opacity=".45" stroke-width="2" stroke-dasharray="1 5" stroke-linecap="round"/>`;
+  }
+  for (const [o, m] of pts) {
+    const s = 22;
+    out += `<g transform="translate(${(x(o) - s / 2).toFixed(1)},${(y((m - 3) / 2 * 0.9) - s / 2).toFixed(1)}) scale(${s / 40})">` +
+      face(Math.round(m)).replace(/^<svg[^>]*>/, '').replace(/<\/svg>$/, '') +
+      `<circle cx="20" cy="20" r="18.5" fill="none" stroke="var(--surface)" stroke-width="3"/></g>`;
+  }
+
+  // Selected day
+  if (chart.sel !== 0) {
+    out += `<line x1="${x(chart.sel)}" x2="${x(chart.sel)}" y1="${top - 6}" y2="${H - bottom + 4}" stroke="var(--accent)" stroke-width="2"/>`;
+  }
+  for (const c of CYCLES) {
+    out += `<circle cx="${x(chart.sel)}" cy="${y(bioAt(c.period, t0 + chart.sel))}" r="5" fill="var(--${c.id})" stroke="var(--surface)" stroke-width="2"/>`;
+  }
+  svg.innerHTML = out;
+  renderBioRead();
+}
+
+function renderBioRead() {
+  const k = addDays(todayKey(), chart.sel);
+  const dn = dayNum(k);
+  const label = chart.sel === 0 ? 'Today' : chart.sel === 1 ? 'Tomorrow' : chart.sel === -1 ? 'Yesterday' : fmtDay(k);
+  const mood = dailyMoods()[k];
+  const items = CYCLES.map((c) => {
+    const v = bioAt(c.period, dn);
+    const rising = bioAt(c.period, dn + 0.5) > v;
+    return `<li style="--c:var(--${c.id})"><span class="sw"></span>${c.name}<b>${pct(v)}</b>${rising ? 'rising' : 'falling'}</li>`;
+  }).join('');
+  const back = chart.sel !== 0 || chart.center !== 0 ? '<button class="btn ghost" id="bio-today">Back to today</button>' : '';
+  $('#bio-read').innerHTML =
+    `<div class="when"><strong>${esc(label)}${mood != null ? ` <span class="sub">feeling ${MOOD_NAMES[Math.round(mood)].toLowerCase()}</span>` : ''}</strong>${back}</div><ul>${items}</ul>`;
+  $('#bio').setAttribute('aria-label', `Biorhythms for ${label}: ` + CYCLES.map((c) => `${c.name} ${pct(bioAt(c.period, dn))}`).join(', '));
+  const b = $('#bio-today');
+  if (b) b.onclick = () => { chart.sel = 0; chart.center = 0; renderBio(); };
+}
+
+// Drag to scroll through days, tap to pick a day.
+(function bioInput() {
+  const svg = $('#bio');
+  let start = null, raf = 0;
+  svg.addEventListener('pointerdown', (e) => {
+    start = { x: e.clientX, center: chart.center, moved: false };
+    svg.setPointerCapture(e.pointerId);
+  });
+  svg.addEventListener('pointermove', (e) => {
+    if (!start) return;
+    const dx = e.clientX - start.x;
+    if (Math.abs(dx) > 6) start.moved = true;
+    if (!start.moved) return;
+    chart.center = start.center - dx / (svg.clientWidth / (chart.span * 2));
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(renderBio);
+  });
+  const end = (e) => {
+    if (!start) return;
+    if (!start.moved) {
+      const r = svg.getBoundingClientRect();
+      chart.sel = Math.round(chart.center - chart.span + (e.clientX - r.left) / (r.width / (chart.span * 2)));
+    } else {
+      chart.center = Math.round(chart.center);
+    }
+    start = null;
+    renderBio();
+  };
+  svg.addEventListener('pointerup', end);
+  svg.addEventListener('pointercancel', () => { start = null; renderBio(); });
+  svg.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      chart.sel += e.key === 'ArrowLeft' ? -1 : 1;
+      if (Math.abs(chart.sel - chart.center) > chart.span - 2) chart.center += e.key === 'ArrowLeft' ? -1 : 1;
+      renderBio();
+      e.preventDefault();
+    }
+  });
+  svg.setAttribute('tabindex', '0');
+})();
+
+function renderFaces() {
+  $('#faces').innerHTML = [1, 2, 3, 4, 5].map((m) =>
+    `<button data-m="${m}" aria-label="Log mood: ${MOOD_NAMES[m]}">${face(m, 60)}${MOOD_NAMES[m]}</button>`).join('');
+  $$('#faces button').forEach((b) => b.addEventListener('click', () => logMood(+b.dataset.m, b)));
+}
+
+function logMood(m, btn) {
+  const entry = { id: uid(), ts: Date.now(), mood: m };
+  E.push(entry);
+  saveEntries();
+  btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop');
+  if (navigator.vibrate) navigator.vibrate(12);
+  chart.sel = 0; chart.center = 0;
+  renderBio();
+  renderTodayList();
+  toast(`Saved: ${MOOD_NAMES[m]}`, [
+    { label: 'Add details', fn: () => openEditor(entry) },
+    { label: 'Undo', fn: () => { E = E.filter((e) => e.id !== entry.id); saveEntries(); renderAll(); } },
+  ]);
+}
+
+function renderTodayList() {
+  const list = entriesOn(todayKey());
+  $('#today-list').innerHTML = list.map((e) =>
+    `<button class="chip-entry" data-id="${e.id}" aria-label="Edit ${MOOD_NAMES[e.mood]} check-in at ${fmtTime(e.ts)}">${face(e.mood, 26)}${fmtTime(e.ts)}${e.note || e.tags?.length || e.energy ? ' <small>+ details</small>' : ''}</button>`).join('');
+  $$('#today-list button').forEach((b) => b.addEventListener('click', () => openEditor(E.find((e) => e.id === b.dataset.id))));
+}
+
+function renderLight() {
+  const el = $('#light-body');
+  if (!S.location) {
+    el.innerHTML = `<p>Set your location to see today's sunshine and daylight.</p><a class="btn primary" href="#settings">Set location</a>`;
+    return;
+  }
+  const k = todayKey();
+  const w = W[k] || {};
+  const dl = daylightFor(k);
+  const delta = (daylightCalc(S.location.lat, k) - daylightCalc(S.location.lat, addDays(k, -1))) * 60;
+  const deltaTxt = Math.abs(delta) < 0.5 ? 'about the same as yesterday' : `${delta > 0 ? '+' : '−'}${Math.abs(delta).toFixed(1)} min on yesterday`;
+  const stat = (dt, dd, small = '') => `<div><dt>${dt}</dt><dd>${dd}${small ? `<small>${small}</small>` : ''}</dd></div>`;
+  const n = (v, d = 0) => (v == null ? '–' : (+v).toFixed(d));
+  el.innerHTML = `<dl class="stats">` +
+    stat('Sunshine', w.sunshineH != null ? `${n(w.sunshineH, 1)} h` : '–', w.cloudPct != null ? `${n(w.cloudPct)}% cloud` : '') +
+    stat('Daylight', dl != null ? fmtHM(dl) : '–', deltaTxt) +
+    stat('Sun up', w.sunrise ? `${w.sunrise}` : '–', w.sunset ? `down ${w.sunset}` : '') +
+    stat('Temperature', w.tMax != null ? `${n(w.tMax)}°` : '–', w.tMin != null ? `low ${n(w.tMin)}°` : '') +
+    stat('Rain', w.rainMm != null ? `${n(w.rainMm, 1)} mm` : '–') +
+    stat('UV', w.uvMax != null ? n(w.uvMax, 0) : '–', w.uvMax >= 3 ? 'wear sunscreen' : '') +
+    `</dl><p class="hint">${esc(S.location.name)}${store.get('weatherAt', 0) ? '' : ', fetching weather…'}</p>`;
+}
+
+/* ================= Editor sheet ================= */
+let editing = null; // { entry, isNew }
+
+function openEditor(entry, isNew = false) {
+  if (!entry) return;
+  editing = { entry: JSON.parse(JSON.stringify(entry)), isNew };
+  const e = editing.entry;
+  const d = new Date(e.ts);
+  $('#ed-title').textContent = isNew ? 'New check-in' : 'Check-in';
+  $('#ed-date').textContent = d.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
+  $('#ed-time').value = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  $('#ed-note').value = e.note || '';
+  $('#ed-del').hidden = isNew;
+  drawEditor();
+  $('#editor').showModal();
+  document.activeElement?.blur();
+}
+
+function drawEditor() {
+  const e = editing.entry;
+  $('#ed-faces').innerHTML = [1, 2, 3, 4, 5].map((m) =>
+    `<button type="button" data-m="${m}" aria-pressed="${e.mood === m}">${face(m, 48)}${MOOD_NAMES[m]}</button>`).join('');
+  $$('#ed-faces button').forEach((b) => b.addEventListener('click', () => { e.mood = +b.dataset.m; drawEditor(); }));
+
+  $('#ed-scales').innerHTML = SCALES.map((s) => `
+    <div class="scale" role="group" aria-label="${s.label}">
+      <div class="lbl">${s.label}${e[s.id] ? '' : ' <small>optional</small>'}</div>
+      <div class="dots">${[1, 2, 3, 4, 5].map((v) => `<button type="button" data-s="${s.id}" data-v="${v}" aria-pressed="${e[s.id] === v}">${v}</button>`).join('')}</div>
+      <div class="ends"><span>${s.lo}</span><span>${s.hi}</span></div>
+    </div>`).join('');
+  $$('#ed-scales button').forEach((b) => b.addEventListener('click', () => {
+    const id = b.dataset.s, v = +b.dataset.v;
+    if (e[id] === v) delete e[id]; else e[id] = v;
+    drawEditor();
+  }));
+
+  const tags = [...new Set([...(S.tags || []), ...(e.tags || [])])];
+  $('#ed-tags').innerHTML = tags.map((t) => `<button type="button" class="chip" data-t="${esc(t)}" aria-pressed="${(e.tags || []).includes(t)}">${esc(t)}</button>`).join('') ||
+    '<p class="hint">Add tags in Settings.</p>';
+  $$('#ed-tags button').forEach((b) => b.addEventListener('click', () => {
+    const t = b.dataset.t;
+    e.tags = (e.tags || []).includes(t) ? e.tags.filter((x) => x !== t) : [...(e.tags || []), t];
+    drawEditor();
+  }));
+}
+
+$('#ed-form').addEventListener('submit', (ev) => {
+  ev.preventDefault();
+  const e = editing.entry;
+  e.note = $('#ed-note').value.trim();
+  if (!e.note) delete e.note;
+  if (e.tags && !e.tags.length) delete e.tags;
+  const [hh, mm] = ($('#ed-time').value || '12:00').split(':').map(Number);
+  const d = new Date(e.ts); d.setHours(hh, mm, 0, 0); e.ts = d.getTime();
+  const i = E.findIndex((x) => x.id === e.id);
+  if (i >= 0) E[i] = e; else E.push(e);
+  saveEntries();
+  $('#editor').close();
+  toast(editing.isNew ? 'Check-in added' : 'Check-in saved');
+  renderAll();
+});
+$('#ed-cancel').addEventListener('click', () => $('#editor').close());
+$('#ed-del').addEventListener('click', () => {
+  if (!confirm('Delete this check-in?')) return;
+  const id = editing.entry.id;
+  E = E.filter((x) => x.id !== id);
+  saveEntries();
+  $('#editor').close();
+  toast('Check-in deleted');
+  renderAll();
+});
+$('#editor').addEventListener('click', (ev) => { if (ev.target === ev.currentTarget) ev.currentTarget.close(); });
+
+/* ================= History ================= */
+const hist = (() => { const d = new Date(); return { y: d.getFullYear(), m: d.getMonth(), sel: dayKey(d) }; })();
+
+render.history = function () {
+  const tk = todayKey();
+  const first = new Date(hist.y, hist.m, 1);
+  const nDays = new Date(hist.y, hist.m + 1, 0).getDate();
+  const lead = (first.getDay() + 6) % 7;
+  const dm = dailyMoods();
+  $('#m-title').textContent = `${MONTHS[hist.m]} ${hist.y}`;
+  $('#m-next').disabled = dayKey(new Date(hist.y, hist.m + 1, 1)) > tk;
+
+  let html = '<span aria-hidden="true"></span>'.repeat(lead);
+  const logged = [];
+  for (let d = 1; d <= nDays; d++) {
+    const k = dayKey(new Date(hist.y, hist.m, d));
+    const avg = dm[k];
+    const w = W[k];
+    if (avg != null) logged.push(avg);
+    const sunW = w?.sunshineH != null ? clamp(w.sunshineH / 14, 0.04, 1) : 0;
+    const cls = ['day', avg != null && 'has', k === tk && 'today', k === hist.sel && 'sel'].filter(Boolean).join(' ');
+    const style = `${avg != null ? `--c:var(--m${Math.round(avg)});` : ''}--w:${sunW.toFixed(2)}`;
+    const label = `${fmtDay(k, { weekday: 'long', day: 'numeric', month: 'long' })}${avg != null ? ', ' + MOOD_NAMES[Math.round(avg)] : ''}`;
+    html += `<button class="${cls}" data-k="${k}" style="${style}" ${k > tk ? 'disabled' : ''} aria-label="${esc(label)}" aria-pressed="${k === hist.sel}">` +
+      `<span class="num">${d}</span>${k <= tk && w?.sunshineH != null ? '<i class="sunbar"></i>' : ''}</button>`;
+  }
+  $('#cal').innerHTML = html;
+  $$('#cal .day').forEach((b) => b.addEventListener('click', () => { hist.sel = b.dataset.k; render.history(); }));
+  $('#m-sum').textContent = logged.length
+    ? `${logged.length} day${logged.length > 1 ? 's' : ''} logged, average mood ${(logged.reduce((a, b) => a + b, 0) / logged.length).toFixed(1)} out of 5`
+    : 'No check-ins this month yet';
+  renderDayDetail();
+
+  // Sunshine bars for older months come from the archive.
+  const from = dayKey(first), to = dayKey(new Date(hist.y, hist.m, nDays));
+  fillArchive(from, to).then((got) => { if (got && currentView() === 'history') render.history(); });
+};
+
+function renderDayDetail() {
+  const k = hist.sel;
+  const list = entriesOn(k);
+  const w = W[k];
+  const parts = [];
+  if (w?.sunshineH != null) parts.push(`${w.sunshineH.toFixed(1)} h sunshine`);
+  const dl = daylightFor(k);
+  if (dl != null) parts.push(`${fmtHM(dl)} daylight`);
+  if (w?.tMax != null) parts.push(`${Math.round(w.tMax)}° high`);
+  if (w?.rainMm) parts.push(`${w.rainMm.toFixed(1)} mm rain`);
+  const bio = S.birthDate ? CYCLES.map((c) => `${c.name} ${pct(bioAt(c.period, dayNum(k)))}`).join(', ') : '';
+  $('#day-detail').innerHTML = `
+    <h2>${esc(fmtDay(k, { weekday: 'long', day: 'numeric', month: 'long' }))}</h2>
+    ${parts.length ? `<p class="meta">${parts.join(', ')}</p>` : ''}
+    ${bio ? `<p class="meta">${bio}</p>` : ''}
+    ${list.length ? `<ul class="entry-list">${list.map((e) => `<li><button class="entry-row" data-id="${e.id}">${face(e.mood, 40)}<div><strong>${MOOD_NAMES[e.mood]}</strong> <small class="sub">${fmtTime(e.ts)}</small>${entrySummary(e)}</div></button></li>`).join('')}</ul>`
+      : '<p class="sub" style="margin:12px 0">No check-ins on this day.</p>'}
+    <button class="btn" id="add-past">Add a check-in for this day</button>`;
+  $$('#day-detail .entry-row').forEach((b) => b.addEventListener('click', () => openEditor(E.find((e) => e.id === b.dataset.id))));
+  $('#add-past').addEventListener('click', () => {
+    const d = keyDate(k);
+    if (k === todayKey()) { const n = new Date(); d.setHours(n.getHours(), n.getMinutes()); } else d.setHours(12, 0);
+    openEditor({ id: uid(), ts: d.getTime(), mood: 3 }, true);
+  });
+}
+
+function entrySummary(e) {
+  const bits = SCALES.filter((s) => e[s.id]).map((s) => `${s.label.replace(' last night', '')} ${e[s.id]}/5`);
+  const tags = e.tags?.length ? e.tags.join(', ') : '';
+  return (bits.length ? `<span>${bits.join(', ')}</span>` : '') + (tags ? `<span>${esc(tags)}</span>` : '') +
+    (e.note ? `<span>${esc(e.note.length > 120 ? e.note.slice(0, 117) + '…' : e.note)}</span>` : '');
+}
+
+$('#m-prev').addEventListener('click', () => { hist.m--; if (hist.m < 0) { hist.m = 11; hist.y--; } render.history(); });
+$('#m-next').addEventListener('click', () => { hist.m++; if (hist.m > 11) { hist.m = 0; hist.y++; } render.history(); });
+
+/* ================= Insights ================= */
+const ins = { range: 90 };
+
+function pearson(xs, ys) {
+  const n = xs.length;
+  if (n < 5) return null;
+  const mx = xs.reduce((a, b) => a + b, 0) / n, my = ys.reduce((a, b) => a + b, 0) / n;
+  let num = 0, dx = 0, dy = 0;
+  for (let i = 0; i < n; i++) { num += (xs[i] - mx) * (ys[i] - my); dx += (xs[i] - mx) ** 2; dy += (ys[i] - my) ** 2; }
+  return dx && dy ? num / Math.sqrt(dx * dy) : null;
+}
+const strength = (r) => { const a = Math.abs(r); return a < 0.1 ? 'no real' : a < 0.3 ? 'a weak' : a < 0.5 ? 'a moderate' : 'a strong'; };
+const cap = (s) => s[0].toUpperCase() + s.slice(1);
+
+function scatter(pts, { xLabel, xMax, xMin = 0 }) {
+  const w = 320, h = 190, l = 30, r = 8, t = 8, b = 34;
+  const X = (v) => l + ((v - xMin) / (xMax - xMin)) * (w - l - r);
+  const Y = (v) => t + (5 - v) / 4 * (h - t - b);
+  let s = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Mood plotted against ${esc(xLabel)}">`;
+  for (let m = 1; m <= 5; m++) s += `<line x1="${l}" x2="${w - r}" y1="${Y(m)}" y2="${Y(m)}" stroke="var(--line)"/><text x="${l - 8}" y="${Y(m) + 4}" text-anchor="end">${m}</text>`;
+  const step = xMax - xMin > 16 ? 4 : 2;
+  for (let v = xMin; v <= xMax; v += step) s += `<text x="${X(v)}" y="${h - 16}" text-anchor="middle">${v}</text>`;
+  s += `<text x="${(l + w - r) / 2}" y="${h - 1}" text-anchor="middle">${esc(xLabel)}</text>`;
+  if (pts.length >= 5) {
+    const n = pts.length, mx = pts.reduce((a, p) => a + p[0], 0) / n, my = pts.reduce((a, p) => a + p[1], 0) / n;
+    let sxy = 0, sxx = 0;
+    pts.forEach(([a, c]) => { sxy += (a - mx) * (c - my); sxx += (a - mx) ** 2; });
+    if (sxx) {
+      const slope = sxy / sxx;
+      const x0 = Math.min(...pts.map((p) => p[0])), x1 = Math.max(...pts.map((p) => p[0]));
+      s += `<line x1="${X(x0)}" y1="${Y(clamp(my + slope * (x0 - mx), 1, 5))}" x2="${X(x1)}" y2="${Y(clamp(my + slope * (x1 - mx), 1, 5))}" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>`;
+    }
+  }
+  for (const [a, m] of pts) s += `<circle cx="${X(a).toFixed(1)}" cy="${Y(m).toFixed(1)}" r="5" fill="var(--m${Math.round(m)})" stroke="var(--ink)" stroke-opacity=".35"/>`;
+  return s + '</svg>';
+}
+
+function moodLine(keys, dm) {
+  const w = 320, h = 170, l = 30, r = 8, t = 8, b = 26;
+  const n = keys.length;
+  const X = (i) => l + (i / Math.max(1, n - 1)) * (w - l - r);
+  const Y = (v) => t + (5 - v) / 4 * (h - t - b);
+  const dls = keys.map(daylightFor);
+  const valid = dls.filter((v) => v != null);
+  let s = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Daily mood over time with daylight hours behind">`;
+  if (valid.length) {
+    const lo = Math.min(...valid) - 0.5, hi = Math.max(...valid) + 0.5;
+    const DY = (v) => t + (1 - (v - lo) / (hi - lo)) * (h - t - b);
+    let p = `M${X(0)},${h - b}`;
+    dls.forEach((v, i) => { if (v != null) p += `L${X(i).toFixed(1)},${DY(v).toFixed(1)}`; });
+    p += `L${X(n - 1)},${h - b}Z`;
+    s += `<path d="${p}" fill="var(--sun)" fill-opacity=".22"/>`;
+  }
+  for (let m = 1; m <= 5; m++) s += `<line x1="${l}" x2="${w - r}" y1="${Y(m)}" y2="${Y(m)}" stroke="var(--line)" stroke-opacity=".7"/><text x="${l - 8}" y="${Y(m) + 4}" text-anchor="end">${m}</text>`;
+  // weekly moving average keeps the line readable
+  let p = '', pen = false;
+  keys.forEach((k, i) => {
+    const win = keys.slice(Math.max(0, i - 3), i + 4).map((kk) => dm[kk]).filter((v) => v != null);
+    if (dm[k] == null && win.length < 2) { pen = false; return; }
+    const v = win.reduce((a, c) => a + c, 0) / win.length;
+    p += (pen ? 'L' : 'M') + X(i).toFixed(1) + ',' + Y(v).toFixed(1);
+    pen = true;
+  });
+  keys.forEach((k, i) => { if (dm[k] != null) s += `<circle cx="${X(i).toFixed(1)}" cy="${Y(dm[k]).toFixed(1)}" r="2.6" fill="var(--m${Math.round(dm[k])})"/>`; });
+  s += `<path d="${p}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+  s += `<text x="${l}" y="${h - 6}">${esc(fmtDay(keys[0], { day: 'numeric', month: 'short' }))}</text><text x="${w - r}" y="${h - 6}" text-anchor="end">Today</text>`;
+  return s + '</svg>';
+}
+
+render.insights = function () {
+  const body = $('#ins-body');
+  const dm = dailyMoods();
+  const all = Object.keys(dm).sort();
+  if (all.length < 7) {
+    body.innerHTML = `<div class="empty">${face(3, 72)}<h2>Patterns need a little time</h2>
+      <p class="sub">Check in on at least 7 different days and your insights will start to appear here.</p>
+      <div class="progress" aria-label="${all.length} of 7 days logged"><i style="width:${(all.length / 7) * 100}%"></i></div>
+      <p class="hint">${all.length} of 7 days logged</p></div>`;
+    return;
+  }
+  const tk = todayKey();
+  const span = ins.range === 0 ? Math.max(30, dayNum(tk) - dayNum(all[0]) + 1) : ins.range;
+  const keys = Array.from({ length: span }, (_, i) => addDays(tk, i - span + 1));
+  const days = keys.filter((k) => dm[k] != null);
+
+  const sunPts = days.filter((k) => W[k]?.sunshineH != null).map((k) => [W[k].sunshineH, dm[k]]);
+  const dlPts = days.filter((k) => daylightFor(k) != null).map((k) => [daylightFor(k), dm[k]]);
+  const rSun = pearson(sunPts.map((p) => p[0]), sunPts.map((p) => p[1]));
+  const rDl = pearson(dlPts.map((p) => p[0]), dlPts.map((p) => p[1]));
+  const avg = days.reduce((a, k) => a + dm[k], 0) / (days.length || 1);
+
+  const reading = (r, n, good, bad) => {
+    if (r == null) return 'Not enough days with weather data yet.';
+    const dir = Math.abs(r) < 0.1 ? '' : r > 0 ? `: ${good}` : `: ${bad}`;
+    return `${cap(strength(r))} link${dir}.`;
+  };
+
+  // Biorhythm vs mood
+  const bioR = S.birthDate ? CYCLES.map((c) => {
+    const xs = days.map((k) => bioAt(c.period, dayNum(k)));
+    return { ...c, r: pearson(xs, days.map((k) => dm[k])) };
+  }) : [];
+  const best = bioR.filter((c) => c.r != null).sort((a, b) => Math.abs(b.r) - Math.abs(a.r))[0];
+  let verdict = '';
+  if (best) {
+    if (Math.abs(best.r) < 0.15) verdict = 'So far your moods and the waves are going their own ways. Biorhythms are for fun, and your data agrees.';
+    else if (days.length < 30) verdict = `Your ${best.name.toLowerCase()} cycle is lining up with your mood a little, but it's early days. Links this size often fade with more data.`;
+    else verdict = `Your ${best.name.toLowerCase()} cycle shows ${strength(best.r)} link with your mood. Keep logging and see whether it holds up.`;
+  }
+
+  // Tags
+  const inRange = E.filter((e) => entryDay(e) >= keys[0]);
+  const tagNames = [...new Set(inRange.flatMap((e) => e.tags || []))];
+  const tagFx = tagNames.map((t) => {
+    const w = inRange.filter((e) => e.tags?.includes(t)), wo = inRange.filter((e) => !e.tags?.includes(t));
+    if (w.length < 3 || wo.length < 3) return null;
+    const a = (l) => l.reduce((s, e) => s + e.mood, 0) / l.length;
+    return { t, d: a(w) - a(wo), n: w.length };
+  }).filter(Boolean).sort((a, b) => b.d - a.d);
+
+  const sadNote = rDl != null && rDl >= 0.3
+    ? '<p class="r-note">Your mood tends to dip as the days get shorter. Morning light, time outdoors and a chat with your GP can all help with seasonal low moods.</p>'
+    : '';
+
+  const segBtn = (v, l) => `<button data-r="${v}" aria-pressed="${ins.range === v}">${l}</button>`;
+  body.innerHTML = `
+    <p class="sub">${days.length} days logged in this period, average mood ${avg.toFixed(1)} out of 5.</p>
+    <div class="seg" role="group" aria-label="Time range" style="margin-top:12px">${segBtn(30, '30 days')}${segBtn(90, '90 days')}${segBtn(365, 'Year')}${segBtn(0, 'All')}</div>
+
+    <article class="card">
+      <h2>Mood over time</h2>
+      ${moodLine(keys, dm)}
+      <p class="r-note">The line is a weekly average. The yellow shading shows how long the days were.</p>
+    </article>
+
+    <article class="card">
+      <h2>Mood and sunshine</h2>
+      <p>${reading(rSun, sunPts.length, 'sunnier days tend to be better days', 'oddly, sunnier days tend to be lower days')}</p>
+      ${scatter(sunPts, { xLabel: 'Hours of sunshine', xMax: Math.max(14, Math.ceil(Math.max(0, ...sunPts.map((p) => p[0])))) })}
+      ${rSun != null ? `<p class="r-note">r = ${rSun.toFixed(2)} over ${sunPts.length} days</p>` : ''}
+    </article>
+
+    <article class="card">
+      <h2>Mood and day length</h2>
+      <p>${reading(rDl, dlPts.length, 'longer days tend to be better days', 'longer days tend to be lower days')}</p>
+      ${scatter(dlPts, { xLabel: 'Hours of daylight', xMin: Math.max(0, 2 * Math.floor(Math.min(24, ...dlPts.map((p) => p[0])) / 2 - 0.5)), xMax: Math.min(24, 2 * Math.ceil(Math.max(0, ...dlPts.map((p) => p[0])) / 2 + 0.5)) })}
+      ${rDl != null ? `<p class="r-note">r = ${rDl.toFixed(2)} over ${dlPts.length} days</p>` : ''}
+      ${sadNote}
+    </article>
+
+    ${bioR.length ? `<article class="card">
+      <h2>Do biorhythms predict your mood?</h2>
+      <p>${verdict}</p>
+      <ul class="bars">${bioR.map((c) => {
+        const r = c.r ?? 0, wPct = Math.abs(r) * 50;
+        return `<li><span>${c.name}</span><span class="track"><span class="fill" style="--c:var(--${c.id});left:${r >= 0 ? 50 : 50 - wPct}%;width:${wPct}%"></span></span><span class="val">${c.r == null ? '–' : r.toFixed(2)}</span></li>`;
+      }).join('')}</ul>
+      <p class="r-note">Bars show correlation, from −1 to +1. Near zero means no link.</p>
+    </article>` : ''}
+
+    <article class="card">
+      <h2>Tags and mood</h2>
+      ${tagFx.length ? `<p>How your mood differs on check-ins with each tag, compared with those without it.</p>
+      <ul class="bars">${tagFx.map((f) => {
+        const wPct = Math.min(50, Math.abs(f.d) * 25);
+        return `<li><span>${esc(f.t)}</span><span class="track"><span class="fill" style="--c:${f.d >= 0 ? 'var(--m5)' : 'var(--m1)'};left:${f.d >= 0 ? 50 : 50 - wPct}%;width:${wPct}%"></span></span><span class="val">${f.d >= 0 ? '+' : '−'}${Math.abs(f.d).toFixed(1)}</span></li>`;
+      }).join('')}</ul>` : '<p class="sub">Tag a few check-ins (each tag at least 3 times) to see which ones go with better or worse moods.</p>'}
+    </article>`;
+
+  $$('#ins-body .seg button').forEach((b) => b.addEventListener('click', () => { ins.range = +b.dataset.r; render.insights(); }));
+
+  // Fetch any missing older weather, then redraw once.
+  if (days.length) fillArchive(days[0], days[days.length - 1]).then((got) => { if (got && currentView() === 'insights') render.insights(); });
+};
+
+/* ================= Settings ================= */
+function mountLocPicker(root, onPick) {
+  root.innerHTML = `
+    <form class="loc-search">
+      <input type="search" placeholder="Search for your town" aria-label="Town or city" required>
+      <button class="btn" type="submit">Search</button>
+    </form>
+    ${window.isSecureContext && 'geolocation' in navigator ? '<button type="button" class="btn ghost geo" style="margin-top:6px">Use my current location</button>' : ''}
+    <ul class="loc-results"></ul>`;
+  const results = $('.loc-results', root);
+  $('form', root).addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const q = $('input', root).value.trim();
+    if (!q) return;
+    results.innerHTML = '<li class="sub">Searching…</li>';
+    try {
+      const r = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=6&language=en`);
+      const j = await r.json();
+      if (!j.results?.length) { results.innerHTML = `<li class="sub">No places found for "${esc(q)}". Try a nearby larger town.</li>`; return; }
+      results.innerHTML = j.results.map((p, i) => `<li><button type="button" data-i="${i}">${esc(p.name)}<span>${esc([p.admin1, p.country].filter(Boolean).join(', '))}</span></button></li>`).join('');
+      $$('button', results).forEach((b) => b.addEventListener('click', () => {
+        const p = j.results[b.dataset.i];
+        results.innerHTML = '';
+        $('input', root).value = '';
+        onPick({ name: [p.name, p.admin1 || p.country].filter(Boolean).join(', '), lat: p.latitude, lon: p.longitude, tz: p.timezone });
+      }));
+    } catch {
+      results.innerHTML = '<li class="sub">Couldn\'t reach the place search. Check your connection and try again.</li>';
+    }
+  });
+  const geo = $('.geo', root);
+  if (geo) geo.addEventListener('click', () => {
+    geo.disabled = true;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => { geo.disabled = false; onPick({ name: 'My location', lat: +pos.coords.latitude.toFixed(3), lon: +pos.coords.longitude.toFixed(3), tz: Intl.DateTimeFormat().resolvedOptions().timeZone }); },
+      () => { geo.disabled = false; toast('Location permission was denied. Search for your town instead.'); },
+      { timeout: 10000 }
+    );
+  });
+}
+
+function setLocation(loc) {
+  const changed = !S.location || S.location.lat !== loc.lat || S.location.lon !== loc.lon;
+  S.location = loc;
+  saveSettings();
+  if (changed) { W = {}; saveWeather(); store.set('weatherAt', 0); archiveTried.clear(); }
+  refreshWeather(true);
+}
+
+render.settings = function () {
+  $('#s-name').value = S.name || '';
+  $('#s-birth').value = S.birthDate || '';
+  $('#s-loc-current').textContent = S.location ? S.location.name : 'No location set';
+  $('#s-tags').innerHTML = (S.tags || []).map((t) => `<button class="chip" data-t="${esc(t)}" aria-label="Remove tag ${esc(t)}">${esc(t)}<span class="x" aria-hidden="true">×</span></button>`).join('');
+  $$('#s-tags button').forEach((b) => b.addEventListener('click', () => { S.tags = S.tags.filter((t) => t !== b.dataset.t); saveSettings(); render.settings(); }));
+  $$('#s-theme button').forEach((b) => b.setAttribute('aria-pressed', (S.theme || 'auto') === b.dataset.v));
+  const at = store.get('backupAt', 0);
+  $('#s-backup-when').textContent = `${E.length} check-in${E.length === 1 ? '' : 's'} stored. ` + (at ? `Last backup ${new Date(at).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}.` : 'No backup yet.');
+};
+
+mountLocPicker($('#s-loc'), (loc) => { setLocation(loc); render.settings(); toast(`Location set to ${loc.name}`); });
+$('#s-name').addEventListener('change', (e) => { S.name = e.target.value.trim(); saveSettings(); });
+$('#s-birth').addEventListener('change', (e) => { if (e.target.value) { S.birthDate = e.target.value; saveSettings(); } });
+$('#s-tag-form').addEventListener('submit', (ev) => {
+  ev.preventDefault();
+  const v = $('#s-tag-new').value.trim();
+  if (v && !(S.tags || []).some((t) => t.toLowerCase() === v.toLowerCase())) { S.tags = [...(S.tags || []), v]; saveSettings(); }
+  $('#s-tag-new').value = '';
+  render.settings();
+});
+$$('#s-theme button').forEach((b) => b.addEventListener('click', () => { S.theme = b.dataset.v; saveSettings(); applyTheme(); render.settings(); }));
+
+$('#s-export').addEventListener('click', async () => {
+  const data = { app: 'myMoods', version: 1, exportedAt: new Date().toISOString(), settings: S, entries: E, weather: W };
+  const name = `mymoods-backup-${todayKey()}.json`;
+  const blob = new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' });
+  const file = new File([blob], name, { type: 'application/json' });
+  let done = false;
+  if (navigator.canShare?.({ files: [file] }) && matchMedia('(pointer: coarse)').matches) {
+    try { await navigator.share({ files: [file], title: 'myMoods backup' }); done = true; }
+    catch (err) { if (err.name === 'AbortError') return; }
+  }
+  if (!done) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }
+  store.set('backupAt', Date.now());
+  render.settings();
+  toast('Backup exported');
+});
+$('#s-import-btn').addEventListener('click', () => $('#s-import').click());
+$('#s-import').addEventListener('change', async (ev) => {
+  const f = ev.target.files[0];
+  ev.target.value = '';
+  if (!f) return;
+  try {
+    const d = JSON.parse(await f.text());
+    if (d.app !== 'myMoods' || !Array.isArray(d.entries)) throw new Error('bad');
+    if (!confirm(`Replace everything on this phone with this backup (${d.entries.length} check-ins)?`)) return;
+    S = d.settings || S; E = d.entries; W = d.weather || {};
+    saveSettings(); saveEntries(); saveWeather();
+    applyTheme();
+    toast('Backup imported');
+    render.settings();
+  } catch {
+    toast("That file isn't a myMoods backup.");
+  }
+});
+
+$('#s-wipe').addEventListener('click', () => {
+  if (!confirm('Delete all check-ins and settings from this phone? This can\'t be undone.')) return;
+  Object.keys(localStorage).filter((k) => k.startsWith('mm.')).forEach((k) => localStorage.removeItem(k));
+  location.hash = '';
+  location.reload();
+});
+
+$('#s-demo').addEventListener('click', async () => {
+  if (E.length && !confirm('Demo data replaces your current check-ins. Export a backup first if you want to keep them. Continue?')) return;
+  const btn = $('#s-demo');
+  btn.disabled = true; btn.textContent = 'Loading…';
+  const days = 150, end = todayKey(), start = addDays(end, -days);
+  if (S.location) { await refreshWeather(true); await fillArchive(start, end); }
+  const tags = S.tags?.length ? S.tags : DEFAULT_TAGS;
+  const out = [];
+  for (let i = days; i >= 0; i--) {
+    const k = addDays(end, -i);
+    if (Math.random() < 0.15) continue;
+    const w = W[k];
+    const sunF = w?.daylightH ? w.sunshineH / w.daylightH : 0.5;
+    const dl = daylightFor(k) ?? 12;
+    const base = 2.4 + sunF * 1.3 + (dl - 12) * 0.1 + (Math.random() - 0.5) * 1.4;
+    const n = Math.random() < 0.3 ? 2 : 1;
+    for (let j = 0; j < n; j++) {
+      const t = [];
+      if (Math.random() < 0.3) t.push(tags[Math.floor(Math.random() * tags.length)]);
+      let m = base + (Math.random() - 0.5) * 0.8;
+      if (t.includes('Exercise') || t.includes('Outdoors') || t.includes('Social')) m += 0.8;
+      if (t.includes('Work stress') || t.includes('Unwell') || t.includes('Alcohol')) m -= 0.8;
+      const d = keyDate(k); d.setHours(j ? 19 : 8 + Math.floor(Math.random() * 4), Math.floor(Math.random() * 60));
+      const e = { id: uid(), ts: d.getTime(), mood: clamp(Math.round(m), 1, 5) };
+      if (Math.random() < 0.5) e.energy = clamp(Math.round(m + (Math.random() - 0.5) * 2), 1, 5);
+      if (t.length) e.tags = t;
+      out.push(e);
+    }
+  }
+  E = out;
+  saveEntries();
+  btn.disabled = false; btn.textContent = 'Load demo data';
+  toast(`Loaded ${out.length} demo check-ins`);
+  render.settings();
+});
+
+/* ================= Theme ================= */
+function applyTheme() {
+  const t = S?.theme || 'auto';
+  if (t === 'auto') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.dataset.theme = t;
+  requestAnimationFrame(() => {
+    $('meta[name="theme-color"]').content = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
+  });
+}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+
+/* ================= Onboarding ================= */
+function startOnboarding() {
+  const ob = $('#onboard');
+  const draft = { name: '', birthDate: '', location: null };
+  const show = (n) => {
+    $$('.ob-step', ob).forEach((s) => { s.hidden = +s.dataset.step !== n; });
+    $$('.ob-dots i', ob).forEach((d, i) => d.classList.toggle('on', i === n - 1));
+    const f = $(`.ob-step[data-step="${n}"] input`, ob);
+    if (f) setTimeout(() => f.focus(), 50);
+  };
+  ob.hidden = false;
+  show(1);
+  $('[data-step="1"]', ob).addEventListener('submit', (e) => { e.preventDefault(); draft.name = $('#ob-name').value.trim(); show(2); });
+  $('[data-step="2"]', ob).addEventListener('submit', (e) => { e.preventDefault(); draft.birthDate = $('#ob-birth').value; show(3); });
+  $$('[data-back]', ob).forEach((b) => b.addEventListener('click', () => show(+b.closest('.ob-step').dataset.step - 1)));
+  const finish = $('#ob-finish');
+  finish.textContent = 'Skip for now';
+  mountLocPicker($('#ob-loc'), (loc) => {
+    draft.location = loc;
+    $('#ob-loc-current').textContent = loc.name;
+    finish.textContent = 'Start tracking';
+  });
+  finish.addEventListener('click', () => {
+    S = { name: draft.name, birthDate: draft.birthDate, location: null, tags: [...DEFAULT_TAGS], theme: 'auto' };
+    saveSettings();
+    if (draft.location) setLocation(draft.location);
+    ob.hidden = true;
+    boot();
+  });
+}
+
+/* ================= Boot ================= */
+function boot() {
+  applyTheme();
+  renderFaces();
+  route();
+  refreshWeather();
+}
+
+window.addEventListener('hashchange', () => { if (S) route(); });
+let resizeT;
+window.addEventListener('resize', () => { clearTimeout(resizeT); resizeT = setTimeout(() => { if (S && currentView() === 'today') renderBio(); }, 100); });
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && S) { refreshWeather(); renderAll(); }
+});
+
+if (S) boot(); else startOnboarding();
+
+if ('serviceWorker' in navigator && window.isSecureContext) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
