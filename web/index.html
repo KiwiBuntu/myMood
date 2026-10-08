@@ -154,6 +154,11 @@ label.field > input, label.field > textarea { margin-top: 6px; font-weight: 400;
 }
 .today-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
 .today-list:empty { display: none; }
+.share-row { margin-top: 12px; }
+.share-row:empty { display: none; }
+.share-row .btn { display: inline-flex; align-items: center; gap: 8px; }
+.share-row svg { width: 18px; height: 18px; }
+input[type="tel"] { width: 100%; padding: 12px 14px; border-radius: 14px; border: 1.5px solid var(--line); background: var(--surface); font-size: 17px; }
 .chip-entry {
   display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 999px;
   padding: 4px 12px 4px 4px; background: var(--surface); box-shadow: var(--shadow);
@@ -352,6 +357,7 @@ dialog::backdrop { background: var(--backdrop); }
       <h2 id="checkin-h">How are you feeling right now?</h2>
       <div class="faces" id="faces"></div>
       <div class="today-list" id="today-list" aria-label="Today's check-ins"></div>
+      <div class="share-row" id="share-row"></div>
     </section>
 
     <section class="light" aria-labelledby="light-h">
@@ -409,6 +415,13 @@ dialog::backdrop { background: var(--backdrop); }
         <input type="text" id="s-tag-new" placeholder="New tag" maxlength="24" aria-label="New tag">
         <button class="btn" type="submit">Add</button>
       </form>
+    </section>
+
+    <section class="group">
+      <h2>Sharing</h2>
+      <label class="field">Share with<input type="text" id="s-share-name" placeholder="e.g. Greg" autocomplete="off"></label>
+      <label class="field">Their WhatsApp number<input type="tel" id="s-share-phone" placeholder="64 21 123 4567" autocomplete="off" inputmode="tel"></label>
+      <p class="hint">Include the country code (64 for New Zealand) without the leading 0. With a number set, sharing opens WhatsApp straight to their chat. Leave it blank to choose who to send to each time.</p>
     </section>
 
     <section class="group">
@@ -890,6 +903,38 @@ function renderTodayList() {
   $('#today-list').innerHTML = list.map((e) =>
     `<button class="chip-entry" data-id="${e.id}" aria-label="Edit ${MOOD_NAMES[e.mood]} check-in at ${fmtTime(e.ts)}">${face(e.mood, 26)}${fmtTime(e.ts)}${e.note || e.tags?.length || e.energy ? ' <small>+ details</small>' : ''}</button>`).join('');
   $$('#today-list button').forEach((b) => b.addEventListener('click', () => openEditor(E.find((e) => e.id === b.dataset.id))));
+
+  const latest = list[list.length - 1];
+  const who = !S.share?.phone ? "Share how I'm feeling" : S.share.name ? `Send to ${S.share.name}` : 'Send on WhatsApp';
+  $('#share-row').innerHTML = latest
+    ? `<button class="btn" id="share-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 3 10 14M21 3l-7 18-4-7-7-4 18-7Z"/></svg>${esc(who)}</button>`
+    : '';
+  if (latest) $('#share-btn').addEventListener('click', () => shareEntry(latest));
+}
+
+/* ================= Sharing ================= */
+const MOOD_EMOJI = ['', '😞', '🙁', '😐', '🙂', '😄'];
+
+function shareText(e) {
+  const mins = (Date.now() - e.ts) / 6e4;
+  const when = mins < 90 ? 'right now' : entryDay(e) === todayKey() ? `earlier today (${fmtTime(e.ts)})` : `on ${fmtDay(entryDay(e))}`;
+  let t = `${MOOD_EMOJI[e.mood]} Feeling ${MOOD_NAMES[e.mood].toLowerCase()} ${when}`;
+  const bits = SCALES.filter((s) => e[s.id]).map((s) => `${s.label.replace(' last night', '').toLowerCase()} ${e[s.id]}/5`);
+  if (bits.length) t += ` (${bits.join(', ')})`;
+  if (e.tags?.length) t += `\n${e.tags.join(', ')}`;
+  return t;
+}
+
+// Straight to a saved WhatsApp chat if there's a number, else the share sheet, else WhatsApp's contact picker.
+async function shareEntry(e) {
+  const text = shareText(e);
+  const phone = (S.share?.phone || '').replace(/\D/g, '');
+  if (phone) { window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank'); return; }
+  if (navigator.share) {
+    try { await navigator.share({ text }); } catch { /* cancelled */ }
+    return;
+  }
+  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
 }
 
 function renderLight() {
@@ -1289,6 +1334,8 @@ function setLocation(loc) {
 render.settings = function () {
   $('#s-name').value = S.name || '';
   $('#s-birth').value = S.birthDate || '';
+  $('#s-share-name').value = S.share?.name || '';
+  $('#s-share-phone').value = S.share?.phone || '';
   $('#s-loc-current').textContent = S.location ? S.location.name : 'No location set';
   $('#s-tags').innerHTML = (S.tags || []).map((t) => `<button class="chip" data-t="${esc(t)}" aria-label="Remove tag ${esc(t)}">${esc(t)}<span class="x" aria-hidden="true">×</span></button>`).join('');
   $$('#s-tags button').forEach((b) => b.addEventListener('click', () => { S.tags = S.tags.filter((t) => t !== b.dataset.t); saveSettings(); render.settings(); }));
@@ -1300,6 +1347,10 @@ render.settings = function () {
 mountLocPicker($('#s-loc'), (loc) => { setLocation(loc); render.settings(); toast(`Location set to ${loc.name}`); });
 $('#s-name').addEventListener('change', (e) => { S.name = e.target.value.trim(); saveSettings(); });
 $('#s-birth').addEventListener('change', (e) => { if (e.target.value) { S.birthDate = e.target.value; saveSettings(); } });
+['name', 'phone'].forEach((f) => $(`#s-share-${f}`).addEventListener('change', (e) => {
+  S.share = { ...S.share, [f]: e.target.value.trim() };
+  saveSettings();
+}));
 $('#s-tag-form').addEventListener('submit', (ev) => {
   ev.preventDefault();
   const v = $('#s-tag-new').value.trim();
