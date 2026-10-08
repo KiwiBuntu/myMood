@@ -1,0 +1,8 @@
+AddType application/manifest+json .webmanifest
+
+# Always re-check the service worker so app updates reach installed copies.
+<IfModule mod_headers.c>
+  <Files "sw.js">
+    Header set Cache-Control "no-cache"
+  </Files>
+</IfModule>

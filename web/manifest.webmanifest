@@ -2,6 +2,7 @@
   "name": "myMoods",
   "short_name": "myMoods",
   "description": "A daily mood diary with biorhythms, sunshine and daylight.",
+  "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
