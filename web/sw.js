@@ -1,5 +1,5 @@
 // myMoods service worker: offline app shell, network-first weather, cached fonts.
-const VERSION = 'mymoods-v3';
+const VERSION = 'mymoods-v4';
 const SHELL = [
   './',
   './index.html',

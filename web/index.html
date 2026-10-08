@@ -913,16 +913,36 @@ function renderTodayList() {
 }
 
 /* ================= Sharing ================= */
-const MOOD_EMOJI = ['', '😞', '🙁', '😐', '🙂', '😄'];
+const MOOD_LINES = [
+  [],
+  ["I'm having a rough one 😞", "I'm not doing great 😞", "I'm feeling pretty awful and could use a hug 😞"],
+  ["I'm feeling a bit low 🙁", "I'm a bit flat 🙁", "I'm feeling a bit down 🙁"],
+  ["I'm feeling okay, just ticking along 😐", "I'm alright, nothing exciting to report 😐", "I'm feeling so-so 😐"],
+  ["I'm feeling good 🙂", "I'm doing pretty well 🙂", "I'm in a good mood 🙂"],
+  ["I'm feeling great! 😄", "I'm having a really good day 😄", "I'm on top of the world 😄"],
+];
+const DETAIL_WORDS = {
+  sleep: ['', 'slept badly', "didn't sleep great", 'slept okay', 'slept well', 'slept brilliantly'],
+  energy: ['', 'running on empty', 'a bit low on energy', 'energy is okay', 'got good energy', 'full of beans'],
+  calm: ['', 'feeling pretty anxious', 'a bit on edge', 'fairly calm', 'feeling relaxed', 'totally chilled'],
+};
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
+const andList = (a) => (a.length < 2 ? a.join('') : `${a.slice(0, -1).join(', ')} and ${a[a.length - 1]}`);
 
 function shareText(e) {
   const mins = (Date.now() - e.ts) / 6e4;
-  const when = mins < 90 ? 'right now' : entryDay(e) === todayKey() ? `earlier today (${fmtTime(e.ts)})` : `on ${fmtDay(entryDay(e))}`;
-  let t = `${MOOD_EMOJI[e.mood]} Feeling ${MOOD_NAMES[e.mood].toLowerCase()} ${when}`;
-  const bits = SCALES.filter((s) => e[s.id]).map((s) => `${s.label.replace(' last night', '').toLowerCase()} ${e[s.id]}/5`);
-  if (bits.length) t += ` (${bits.join(', ')})`;
-  if (e.tags?.length) t += `\n${e.tags.join(', ')}`;
-  return t;
+  const when = mins < 90 ? 'Quick mood update'
+    : entryDay(e) === todayKey() ? `Mood update from earlier today (${fmtTime(e.ts)})`
+    : `Mood update from ${fmtDay(entryDay(e))}`;
+  const hi = S.share?.name ? `Hi ${S.share.name}! ` : 'Hi! ';
+  let line = pick(MOOD_LINES[e.mood]);
+  if (mins >= 90) line = line.replace("I'm not", "I wasn't").replace("I'm ", 'I was ');
+  const lines = [`${hi}${when}: ${line}`];
+  const details = ['sleep', 'energy', 'calm'].filter((k) => e[k]).map((k) => DETAIL_WORDS[k][e[k]]);
+  if (details.length) lines.push(cap(andList(details)) + '.');
+  if (e.tags?.length) lines.push(`Today's mix: ${andList(e.tags.map((t) => t.toLowerCase()))}.`);
+  lines.push('', '(sent from my myMoods app 🌤️)');
+  return lines.join('\n');
 }
 
 // Straight to a saved WhatsApp chat if there's a number, else the share sheet, else WhatsApp's contact picker.
